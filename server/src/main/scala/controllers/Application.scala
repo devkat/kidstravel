@@ -7,7 +7,7 @@ import com.google.inject.Inject
 import play.api.{Configuration, Environment}
 import play.api.mvc._
 import services.ApiService
-import spatutorial.shared.Api
+import kidstravel.shared.Api
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -16,11 +16,12 @@ object Router extends autowire.Server[ByteBuffer, Pickler, Pickler] {
   override def write[R: Pickler](r: R) = Pickle.intoBytes(r)
 }
 
-class Application @Inject() (implicit val config: Configuration, env: Environment) extends Controller {
-  val apiService = new ApiService()
+class Application @Inject() (implicit val config: Configuration,
+                             env: Environment,
+                             apiService: ApiService) extends Controller {
 
   def index = Action {
-    Ok(views.html.index("SPA tutorial"))
+    Ok(views.html.index("Kids Travel"))
   }
 
   def autowireApi(path: String) = Action.async(parse.raw) {

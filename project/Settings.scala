@@ -10,6 +10,13 @@ object Settings {
   val name = "kidstravel"
   val version = "1.1.4"
 
+  object db {
+    val driver = "org.h2.Driver"
+    val url = "jdbc:h2:target/db"
+    val user = ""
+    val password = ""
+  }
+
   /** Options for the scala compiler */
   val scalacOptions = Seq(
     "-Xlint",
@@ -31,6 +38,8 @@ object Settings {
     val uTest = "0.4.3"
     val h2 = "1.3.170"
     val slick = "3.1.0"
+    val playSlick = "2.0.0"
+    val akkaFileIo = "1.0.0-SNAPSHOT"
 
     val react = "15.1.0"
     val jQuery = "1.11.1"
@@ -39,6 +48,10 @@ object Settings {
 
     val playScripts = "0.5.0"
   }
+
+  val liquibaseDependencies = Def.setting(Seq(
+    "com.h2database" % "h2" % versions.h2
+  ))
 
   /**
    * These dependencies are shared between JS and JVM projects
@@ -55,8 +68,8 @@ object Settings {
     "org.webjars" % "font-awesome" % "4.3.0-1" % Provided,
     "org.webjars" % "bootstrap" % versions.bootstrap % Provided,
     "com.lihaoyi" %% "utest" % versions.uTest % Test,
-    "com.h2database" % "h2" % versions.h2,
-    "com.typesafe.slick" %% "slick-codegen" %  versions.slick
+    "com.typesafe.play" %% "play-slick" % versions.playSlick,
+    "ch.becompany" %% "akka-file-io" % versions.akkaFileIo
   ))
 
   /** Dependencies only used by the JS project (note the use of %%% instead of %%) */

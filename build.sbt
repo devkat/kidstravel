@@ -18,6 +18,16 @@ lazy val sharedJS = shared.js.settings(name := "sharedJS")
 // use eliding to drop some debug code in the production build
 lazy val elideOptions = settingKey[Seq[String]]("Set limit for elidable functions")
 
+lazy val liquibase = (project in file("liquibase"))
+  .settings(
+    libraryDependencies ++= Settings.liquibaseDependencies.value,
+    liquibaseUsername := Settings.db.user,
+    liquibasePassword := Settings.db.password,
+    liquibaseDriver := Settings.db.driver,
+    liquibaseUrl := Settings.db.url
+  )
+  .enablePlugins(SbtLiquibase)
+
 // instantiate the JS project for SBT with some additional settings
 lazy val client: Project = (project in file("client"))
   .settings(
@@ -46,9 +56,6 @@ lazy val client: Project = (project in file("client"))
 // Client projects (just one in this case)
 lazy val clients = Seq(client)
 
-val jdbcDriver = "org.h2.Driver"
-val jdbcUrl = "jdbc:h2:target/db"
-
 // instantiate the JVM project for SBT with some additional settings
 lazy val server = (project in file("server"))
   .settings(
@@ -62,27 +69,12 @@ lazy val server = (project in file("server"))
     scalaJSProjects := clients,
     pipelineStages := Seq(scalaJSProd, digest, gzip),
     // compress CSS
-    LessKeys.compress in Assets := true,
-    liquibaseUsername := "",
-    liquibasePassword := "",
-    liquibaseDriver := jdbcDriver,
-    liquibaseUrl := jdbcUrl,
-    sourceGenerators in Compile <+= slickCodeGenTask
+    LessKeys.compress in Assets := true
   )
-  .enablePlugins(SbtLiquibase, PlayScala)
+  .enablePlugins(PlayScala)
   .disablePlugins(PlayLayoutPlugin) // use the standard directory layout instead of Play's custom
   .aggregate(clients.map(projectToRef): _*)
   .dependsOn(sharedJVM)
-
-lazy val slick = TaskKey[Seq[File]]("gen-tables")
-lazy val slickCodeGenTask = (sourceManaged, dependencyClasspath in Compile, runner in Compile, streams) map { (dir, cp, r, s) =>
-  val outputDir = (dir / "slick").getPath // place generated files in sbt's managed sources folder
-  val slickDriver = "slick.driver.H2Driver"
-  val pkg = "kidstravel.slick"
-  toError(r.run("slick.codegen.SourceCodeGenerator", cp.files, Array(slickDriver, jdbcDriver, jdbcUrl, outputDir, pkg), s.log))
-  val fname = outputDir + "/kidstravel/slick/Tables.scala"
-  Seq(file(fname))
-}
 
 // Command for building a release
 lazy val ReleaseCmd = Command.command("release") {
@@ -95,8 +87,6 @@ lazy val ReleaseCmd = Command.command("release") {
     "set elideOptions in client := Seq()" ::
     state
 }
-
-// lazy val root = (project in file(".")).aggregate(client, server)
 
 // loads the Play server project at sbt startup
 onLoad in Global := (Command.process("project server", _: State)) compose (onLoad in Global).value

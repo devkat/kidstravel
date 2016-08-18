@@ -42,14 +42,14 @@ To enable server side logging, call `log.enableServerLogging("/logging")`. In th
 sharedProjectJVM CLIENT - [{"logger":"Log","timestamp":1425500652089,"level":"INFO","url":"http://localhost:8080/#todo","message":"This message goes to server as well"}]
 sharedProjectJVM Sending 4 Todo items
 sharedProjectJVM Sending 4 Todo items
-sharedProjectJVM Todo item was updated: TodoItem(3,Walk away slowly from an explosion without looking back.,TodoHigh,false)
+sharedProjectJVM Todo item was updated: Poi(3,Walk away slowly from an explosion without looking back.,TodoHigh,false)
 sharedProjectJVM CLIENT - [{"logger":"Log","timestamp":1425500661456,"level":"DEBUG","url":"http://localhost:8080/#todo","message":"User is editing a todo"}]
 sharedProjectJVM CLIENT - [{"logger":"Log","timestamp":1425500664865,"level":"DEBUG","url":"http://localhost:8080/#todo","message":"Todo editing cancelled"}]
 sharedProjectJVM CLIENT - [{"logger":"Log","timestamp":1425500668485,"level":"DEBUG","url":"http://localhost:8080/#todo","message":"User is editing a todo"}]
 sharedProjectJVM CLIENT - [{"logger":"Log","timestamp":1425500671017,"level":"DEBUG","url":"http://localhost:8080/#todo","message":"User is editing a todo"}]
 sharedProjectJVM CLIENT - [{"logger":"Log","timestamp":1425500671751,"level":"DEBUG","url":"http://localhost:8080/#todo","message":"User is editing a todo"}]
 sharedProjectJVM CLIENT - [{"logger":"Log","timestamp":1425500672101,"level":"DEBUG","url":"http://localhost:8080/#todo","message":"Todo edited:
-  TodoItem(3,Walk away slowly from an explosion without looking back.,TodoNormal,false)"}]
+  Poi(3,Walk away slowly from an explosion without looking back.,TodoNormal,false)"}]
 ```
 
 Many of the advanced features of the underlying logging library are not exposed in this tutorial project, but you can look at the current implementation and

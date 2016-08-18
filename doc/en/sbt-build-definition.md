@@ -15,7 +15,7 @@ The build defines three separate projects:
 ## Shared project
 
 First one is a special Scala.js `CrossProject` that actually contains two projects: one for JS and one for JVM. This `shared` project contains classes, libraries
-and resources shared between the client and server. In the context of this tutorial it means just the `Api.scala` trait and `TodoItem.scala` case class.
+and resources shared between the client and server. In the context of this tutorial it means just the `Api.scala` trait and `Poi.scala` case class.
 In a more realistic application you would have your data models etc. defined here.
 
 ```scala

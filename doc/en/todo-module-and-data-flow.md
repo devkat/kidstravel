@@ -160,15 +160,15 @@ The dialog gets an optional item in properties and maintains current item in its
 when the dialog box is closed (or cancelled).
 
 ```scala
-case class Props(item: Option[TodoItem], submitHandler: (TodoItem, Boolean) => Unit)
+case class Props(item: Option[Poi], submitHandler: (Poi, Boolean) => Unit)
 
-case class State(item: TodoItem, cancelled: Boolean = true)
+case class State(item: Poi, cancelled: Boolean = true)
 ```
 
 Building the component looks a bit complicated, so let's walk through it.
 ```scala
 val component = ReactComponentB[Props]("TodoForm")
-  .initialState_P(p => State(p.item.getOrElse(TodoItem("", 0, "", TodoNormal, false))))
+  .initialState_P(p => State(p.item.getOrElse(Poi("", 0, "", TodoNormal, false))))
   .renderBackend[Backend]
   .build
   

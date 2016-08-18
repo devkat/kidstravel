@@ -69,13 +69,13 @@ trait Api {
   def motd(name:String) : String
 
   // get Todo items
-  def getTodos() : Seq[TodoItem]
+  def getTodos() : Seq[Poi]
 
   // update a Todo
-  def updateTodo(item: TodoItem): Seq[TodoItem]
+  def updateTodo(item: Poi): Seq[Poi]
 
   // delete a Todo
-  def deleteTodo(itemId: String): Seq[TodoItem]
+  def deleteTodo(itemId: String): Seq[Poi]
 }
 ```
 

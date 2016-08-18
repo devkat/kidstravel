@@ -1,51 +1,32 @@
 package services
 
-import java.util.{UUID, Date}
+import java.util.{Date, UUID}
+import javax.inject.Inject
 
-import spatutorial.shared._
+import geo.GeoDataLoader
+import kidstravel.shared.Api
+import kidstravel.shared.geo.Country
+import kidstravel.shared.poi.Poi
+import play.api.db.slick.DatabaseConfigProvider
+import slick.driver.JdbcProfile
+import slick.lifted.TableQuery
 
-class ApiService extends Api {
-  var todos = Seq(
-    TodoItem("41424344-4546-4748-494a-4b4c4d4e4f50", 0x61626364, "Wear shirt that says “Life”. Hand out lemons on street corner.", TodoLow, completed = false),
-    TodoItem("2", 0x61626364, "Make vanilla pudding. Put in mayo jar. Eat in public.", TodoNormal, completed = false),
-    TodoItem("3", 0x61626364, "Walk away slowly from an explosion without looking back.", TodoHigh, completed = false),
-    TodoItem("4", 0x61626364, "Sneeze in front of the pope. Get blessed.", TodoNormal, completed = true)
-  )
+class ApiService @Inject()(
+    protected val dbConfigProvider: DatabaseConfigProvider,
+    protected val geoDataLoader: GeoDataLoader) extends Api {
 
-  override def welcomeMsg(name: String): String =
-    s"Welcome to SPA, $name! Time is now ${new Date}"
+  val dbConfig = dbConfigProvider.get[JdbcProfile]
+  val db = dbConfig.db
+  import dbConfig.driver.api._
+  //private val Countries = TableQuery[Coun]
 
-  override def getAllTodos(): Seq[TodoItem] = {
-    // provide some fake Todos
-    Thread.sleep(300)
-    println(s"Sending ${todos.size} Todo items")
-    todos
+  override def getCountries(): Seq[Country] = {
+    Nil
   }
 
-  // update a Todo
-  override def updateTodo(item: TodoItem): Seq[TodoItem] = {
-    // TODO, update database etc :)
-    if(todos.exists(_.id == item.id)) {
-      todos = todos.collect {
-        case i if i.id == item.id => item
-        case i => i
-      }
-      println(s"Todo item was updated: $item")
-    } else {
-      // add a new item
-      val newItem = item.copy(id = UUID.randomUUID().toString)
-      todos :+= newItem
-      println(s"Todo item was added: $newItem")
-    }
-    Thread.sleep(300)
-    todos
-  }
+  override def getPois(): Seq[Poi] = Nil
 
-  // delete a Todo
-  override def deleteTodo(itemId: String): Seq[TodoItem] = {
-    println(s"Deleting item with id = $itemId")
-    Thread.sleep(300)
-    todos = todos.filterNot(_.id == itemId)
-    todos
-  }
+  override def updatePoi(poi: Poi): Seq[Poi] = Nil
+
+  override def deletePoi(id: Long): Seq[Poi] = Nil
 }

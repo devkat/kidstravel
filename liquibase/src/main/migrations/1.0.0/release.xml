@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+  <changeSet id="tables" author="devkat">
+    <createTable tableName="user">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="email" type="varchar">
+        <constraints nullable="false" unique="true"/>
+      </column>
+      <column name="name" type="varchar"/>
+    </createTable>
+
+    <createTable tableName="country">
+      <column name="code" type="varchar(2)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="name" type="varchar">
+        <constraints nullable="false" unique="true"/>
+      </column>
+    </createTable>
+
+    <createTable tableName="subdivision">
+      <column name="id" type="bigint">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="country_code" type="varchar(2)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="varchar">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createTable tableName="city">
+      <column name="id" type="bigint">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="country_code" type="varchar(2)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="subdivision_id" type="bigint"/>
+      <column name="name" type="varchar">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <addUniqueConstraint tableName="subdivision" columnNames="country_code, name" constraintName="unique_subdivision"/>
+
+    <addForeignKeyConstraint
+        baseTableName="subdivision"
+        constraintName="fk__subdivision__country"
+        baseColumnNames="country_code"
+        referencedTableName="country"
+        referencedColumnNames="code"/>
+
+    <addUniqueConstraint tableName="city" columnNames="country_code, subdivision_id, name" constraintName="unique_city"/>
+
+    <addForeignKeyConstraint
+        constraintName="fk__city__country"
+        baseTableName="city"
+        baseColumnNames="country_code"
+        referencedTableName="country"
+        referencedColumnNames="code"/>
+
+    <addForeignKeyConstraint
+        constraintName="fk__city__subdivision"
+        baseTableName="city"
+        baseColumnNames="subdivision_id"
+        referencedTableName="subdivision"
+        referencedColumnNames="id"/>
+
+  </changeSet>
+  <!--
+  <changeSet id="data" author="devkat">
+
+    <createTable tableName="temp_city">
+      <column name="country_code" type="varchar(2)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="locode" type="varchar(3)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="subdivision_code" type="varchar"/>
+      <column name="name" type="varchar">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <loadData tableName="country"
+                    file="server/src/main/migrations/data/country-codes.csv">
+      <column name="code" type="string"/>
+      <column name="name" type="string"/>
+    </loadData>
+
+    <loadData tableName="subdivision"
+                    file="server/src/main/migrations/data/subdivision-codes.csv">
+      <column name="country_code" type="string"/>
+      <column name="code" type="string"/>
+      <column name="name" type="string"/>
+    </loadData>
+
+    <loadData tableName="temp_city"
+                    file="server/src/main/migrations/data/code-list.csv">
+      <column name="change" type="skip"/>
+      <column name="country_code" type="string"/>
+      <column name="locode" type="string"/>
+      <column name="name" type="string"/>
+      <column name="name_wo_diacritics" type="skip"/>
+      <column name="subdivision_code" type="string"/>
+      <column name="status" type="skip"/>
+      <column name="function" type="skip"/>
+      <column name="date" type="skip"/>
+      <column name="iata" type="skip"/>
+      <column name="coordinates" type="skip"/>
+      <column name="remarks" type="skip"/>
+    </loadData>
+    
+    <update tableName="temp_city">
+      <column name="subdivision_code" valueComputed="NULL"/>
+    </update>
+
+    <sql>
+      UPDATE temp_city c
+         SET c.subdivision_code = null
+       WHERE c.subdivision_code = '' OR NOT EXISTS (
+             SELECT 1 FROM subdivision s WHERE s.code = c.subdivision_code AND s.country_code = c.country_code);
+      INSERT INTO city SELECT * FROM temp_city;
+    </sql>
+    
+    <dropTable tableName="temp_city"/>
+
+  </changeSet>
+-->
+</databaseChangeLog>

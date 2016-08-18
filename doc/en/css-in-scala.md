@@ -103,7 +103,7 @@ After that it's as simple as getting a reference to your stylesheet and using th
 private def bss = GlobalStyles.bootstrapStyles
 
 val style = bss.listGroup
-def renderItem(item: TodoItem) = {
+def renderItem(item: Poi) = {
   // convert priority into Bootstrap style
   val itemStyle = item.priority match {
     case TodoLow => style.itemOpt(CommonStyle.info)
