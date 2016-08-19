@@ -18,16 +18,6 @@ lazy val sharedJS = shared.js.settings(name := "sharedJS")
 // use eliding to drop some debug code in the production build
 lazy val elideOptions = settingKey[Seq[String]]("Set limit for elidable functions")
 
-lazy val liquibase = (project in file("liquibase"))
-  .settings(
-    libraryDependencies ++= Settings.liquibaseDependencies.value,
-    liquibaseUsername := Settings.db.user,
-    liquibasePassword := Settings.db.password,
-    liquibaseDriver := Settings.db.driver,
-    liquibaseUrl := Settings.db.url
-  )
-  .enablePlugins(SbtLiquibase)
-
 // instantiate the JS project for SBT with some additional settings
 lazy val client: Project = (project in file("client"))
   .settings(
@@ -63,15 +53,19 @@ lazy val server = (project in file("server"))
     version := Settings.version,
     scalaVersion := Settings.versions.scala,
     scalacOptions ++= Settings.scalacOptions,
-    libraryDependencies ++= Settings.jvmDependencies.value,
+    libraryDependencies ++= Settings.liquibaseDependencies.value ++ Settings.jvmDependencies.value,
     commands += ReleaseCmd,
     // connect to the client project
     scalaJSProjects := clients,
     pipelineStages := Seq(scalaJSProd, digest, gzip),
     // compress CSS
-    LessKeys.compress in Assets := true
+    LessKeys.compress in Assets := true,
+    liquibaseUsername := Settings.db.user,
+    liquibasePassword := Settings.db.password,
+    liquibaseDriver := Settings.db.driver,
+    liquibaseUrl := Settings.db.url
   )
-  .enablePlugins(PlayScala)
+  .enablePlugins(PlayScala, SbtLiquibase)
   .disablePlugins(PlayLayoutPlugin) // use the standard directory layout instead of Play's custom
   .aggregate(clients.map(projectToRef): _*)
   .dependsOn(sharedJVM)

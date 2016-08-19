@@ -12,7 +12,7 @@ object Settings {
 
   object db {
     val driver = "org.h2.Driver"
-    val url = "jdbc:h2:target/db"
+    val url = "jdbc:h2:server/target/db"
     val user = ""
     val password = ""
   }
@@ -39,7 +39,8 @@ object Settings {
     val h2 = "1.3.170"
     val slick = "3.1.0"
     val playSlick = "2.0.0"
-    val akkaFileIo = "1.0.0-SNAPSHOT"
+    val akkaFileIo = "0.1.1-SNAPSHOT"
+    val scalaTestPlusPlay = "1.5.0"
 
     val react = "15.1.0"
     val jQuery = "1.11.1"
@@ -69,7 +70,9 @@ object Settings {
     "org.webjars" % "bootstrap" % versions.bootstrap % Provided,
     "com.lihaoyi" %% "utest" % versions.uTest % Test,
     "com.typesafe.play" %% "play-slick" % versions.playSlick,
-    "ch.becompany" %% "akka-file-io" % versions.akkaFileIo
+    "ch.becompany" %% "akka-file-io" % versions.akkaFileIo,
+    "com.h2database" % "h2" % versions.h2,
+    "org.scalatestplus.play" %% "scalatestplus-play" % versions.scalaTestPlusPlay % "test"
   ))
 
   /** Dependencies only used by the JS project (note the use of %%% instead of %%) */
