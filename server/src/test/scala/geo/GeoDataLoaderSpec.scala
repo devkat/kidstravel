@@ -1,11 +1,8 @@
 package geo
 
 import org.scalatestplus.play.PlaySpec
-import play.api.{Application, Configuration, Mode, Play}
-import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
-import slick.driver.JdbcProfile
-import play.api.libs.concurrent.Execution.Implicits._
+import play.api.{Application, Mode}
 
 class GeoDataLoaderSpec extends PlaySpec {
 
@@ -14,7 +11,7 @@ class GeoDataLoaderSpec extends PlaySpec {
       Map(
         "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
         "slick.dbs.default.db.driver" -> "org.h2.Driver",
-        "slick.dbs.default.db.url" -> "jdbc:h2:target/db"
+        "slick.dbs.default.db.url" -> "jdbc:h2:target/db;DATABASE_TO_UPPER=false"
       )
     )
     .in(Mode.Test)

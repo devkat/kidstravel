@@ -12,7 +12,7 @@ object Settings {
 
   object db {
     val driver = "org.h2.Driver"
-    val url = "jdbc:h2:server/target/db"
+    val url = "jdbc:h2:server/target/db;DATABASE_TO_UPPER=false"
     val user = ""
     val password = ""
   }

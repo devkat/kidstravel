@@ -4,13 +4,13 @@ import javax.inject.Inject
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Sink, SinkQueue}
+import akka.stream.scaladsl.{Sink, SinkQueue, Source}
 import cats._
 import cats.std.all._
 import cats.data.Validated.{Invalid, Valid}
 import ch.becompany.akka.io.csv.{CsvReader, CsvSpec}
 import ch.becompany.akka.io.file.ResourceReader
-import kidstravel.shared.geo.City
+import kidstravel.shared.geo.{City, Country}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
@@ -21,11 +21,33 @@ import collection.immutable.Queue
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
+case class CountryRecord(
+  code2: String, //ISO
+  code3: String, // ISO3
+  codeNumeric: Option[Int], // ISO-Numeric
+  fips: String, // fips
+  name: String, // Country
+  capital: String, // Capital
+  area: Option[Double], // Area(in sq km)
+  population: Option[Int], // Population
+  continent: String, // Continent
+  tld: String, // tld
+  currencyCode: String, // CurrencyCode
+  currencyName: String, // CurrencyName
+  phone: String, // Phone
+  postalCodeFormat: String, // Postal Code Format
+  postalCodeRegex: String, // Postal Code Regex
+  languages: String, // Languages
+  geonameId: Long, // geonameid
+  neighbours: String, // neighbours
+  equivalentFipsCode: String // EquivalentFipsCode
+)
+
 case class GeoName(
-  geonameid: Long, // integer id of record in geonames database
+  geonameId: Long, // integer id of record in geonames database
   name: String, // name of geographical point (utf8) varchar(200)
-  asciiname: String, // name of geographical point in plain ascii characters, varchar(200)
-  alternatenames: String, // alternatenames, comma separated, ascii names automatically transliterated, convenience attribute from alternatename table, varchar(10000)
+  asciiName: String, // name of geographical point in plain ascii characters, varchar(200)
+  alternateNames: String, // alternatenames, comma separated, ascii names automatically transliterated, convenience attribute from alternatename table, varchar(10000)
   latitude: String, // latitude in decimal degrees (wgs84)
   longitude: String, // longitude in decimal degrees (wgs84)
   featureClass: String, // see http://www.geonames.org/export/codes.html, char(1)
@@ -56,36 +78,47 @@ class GeoDataLoader @Inject()(dbConfigProvider: DatabaseConfigProvider)(
 
   private implicit val materializer = ActorMaterializer()
 
-  private val csvReader = new CsvReader[GeoName](CsvSpec(fieldDelimiter = '\t'))
+  val csvSpec = CsvSpec(fieldDelimiter = '\t')
+  private val countryReader = new CsvReader[CountryRecord](csvSpec)
+  private val cityReader = new CsvReader[GeoName](csvSpec)
 
-  private def importCity(geoName: GeoName): DBIOAction[Int, NoStream, Effect.All] = {
-    val city = City(-1, geoName.name, geoName.countryCode, None)
-    cities += city
-  }
+  private def importCountry(record: CountryRecord): DBIOAction[Int, NoStream, Effect.All] =
+    countries += Country(record.code2, record.name)
 
-  private def toDbioAction[S](queue: SinkQueue[DBIOAction[S, NoStream, Effect.All]]): DBIOAction[Queue[S], NoStream, Effect.All] =
+  private def importCity(geoName: GeoName): DBIOAction[Int, NoStream, Effect.All] =
+    cities.map(c => (c.name, c.countryCode)) += (geoName.name, geoName.countryCode)
+
+  private def toDbioAction[S](queue: SinkQueue[DBIOAction[S, NoStream, Effect.All]]):
+      DBIOAction[Queue[S], NoStream, Effect.All] =
     DBIO.from(queue.pull() map {
       case Some(action) => action.flatMap(s => toDbioAction(queue).map(_ :+ s))
       case None => DBIO.successful(Queue())
     }).flatMap(r => r)
 
+  private def importFile[T](file: String, csvReader: CsvReader[T], importer: T => DBIOAction[Int, NoStream, Effect.All]):
+      Source[DBIOAction[Int, NoStream, Effect.All], _] =
+    csvReader.read(ResourceReader.read(file, encoding = Some("UTF-8"))).
+      //map(record => { logger.debug(s"Importing $record"); record }).
+      map(_.bimap(
+        errors => { logger.error(errors.foldLeft("")(_ + "; " + _)); errors },
+        t => t //{ logger.info(s"Importing $t".take(80)); t }
+      )).
+      collect { case Valid(t) => t}.
+      map(importer)
 
   def importGeoData(): Unit = {
     println(s"Importing geo data.")
 
-    val dbActions = csvReader.read(ResourceReader.read("/geonames/cities1000.txt")).
-      map(record => { logger.debug(s"Importing $record"); record }).
-      map(_.bimap(
-        errors => { logger.error(errors.foldLeft("")(_ + "; " + _)); errors },
-        t => { logger.info(s"Importing $t".take(80)); t }
-      )).
-      collect { case Valid(t) => t}.
-      map(importCity)
+    val countryActions = importFile("/geonames/countryInfo.txt", countryReader, importCountry)
+    val cityActions = importFile("/geonames/cities1000.txt", cityReader, importCity)
 
-    val future = db.run(toDbioAction(dbActions.runWith(Sink.queue())).transactionally)
+    val future = db.run((for {
+      _ <- toDbioAction(countryActions.runWith(Sink.queue()))
+      _ <- toDbioAction(cityActions.runWith(Sink.queue()))
+    } yield {}).transactionally)
     Await.result(future, 10.minutes)
   }
 
-  importGeoData()
+  //importGeoData()
 
 }

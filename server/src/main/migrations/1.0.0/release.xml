@@ -40,7 +40,7 @@
     </createTable>
 
     <createTable tableName="city">
-      <column name="id" type="bigint">
+      <column name="id" type="bigint" autoIncrement="true">
         <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="country_code" type="varchar(2)">
