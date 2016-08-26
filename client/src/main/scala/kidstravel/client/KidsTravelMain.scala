@@ -29,9 +29,11 @@ object KidsTravelMain extends js.JSApp {
     import dsl._
 
     val poiWrapper = KidsTravelCircuit.connect(_.pois)
+    val cityWrapper = KidsTravelCircuit.connect(_.cityCandidates)
+
     // wrap/connect components to the circuit
     (
-      staticRoute(root, DashboardLoc) ~> renderR(ctl => KidsTravelCircuit.wrap(_.pois)(proxy => Dashboard(ctl))) |
+      staticRoute(root, DashboardLoc) ~> renderR(ctl => cityWrapper(proxy => Dashboard(ctl, proxy))) |
       staticRoute("#todo", PoiLoc) ~> renderR(ctl => poiWrapper(PoiModule(_)))
       ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)

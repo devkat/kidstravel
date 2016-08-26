@@ -6,14 +6,14 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.prefix_<^._
 import kidstravel.client.KidsTravelMain.{Loc, PoiLoc}
-import kidstravel.shared.poi.Poi
+import kidstravel.client.components.SearchBox
+import kidstravel.shared.geo.CityLabel
 
 import scala.language.existentials
-import scala.util.Random
 
 object Dashboard {
 
-  case class Props(router: RouterCtl[Loc])
+  case class Props(router: RouterCtl[Loc], cityProxy: ModelProxy[Pot[Seq[CityLabel]]])
 
   case class State()
 
@@ -23,13 +23,14 @@ object Dashboard {
     .initialState_P(props => State())
     .renderPS { (_, props, state) =>
       <.div(
-        // header, MessageOfTheDay and chart components
         <.h2("Dashboard"),
         // create a link to the To Do view
-        <.div(props.router.link(PoiLoc)("Check your todos!"))
+        <.div(props.router.link(PoiLoc)("Check your todos!")),
+        SearchBox(props.cityProxy)
       )
     }
     .build
 
-  def apply(router: RouterCtl[Loc]) = component(Props(router))
+  def apply(router: RouterCtl[Loc], cityProxy: ModelProxy[Pot[Seq[CityLabel]]]) =
+    component(Props(router, cityProxy))
 }

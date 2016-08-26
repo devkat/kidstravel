@@ -7,6 +7,7 @@ import diode.util._
 import diode.react.ReactConnector
 import kidstravel.shared.Api
 import boopickle.Default._
+import kidstravel.shared.geo.{City, CityLabel}
 import kidstravel.shared.poi.Poi
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
@@ -20,10 +21,16 @@ case class UpdatePoi(poi: Poi) extends Action
 
 case class DeletePoi(poi: Poi) extends Action
 
+case class GetCityCandidates(fragment: String) extends Action
+
+case class UpdateCityCandidates(candidates: Seq[CityLabel]) extends Action
 
 
 // The base model of our application
-case class RootModel(pois: Pot[Pois])
+case class RootModel(
+  pois: Pot[Pois],
+  cityCandidates: Pot[Seq[CityLabel]]
+)
 
 case class Pois(pois: Seq[Poi]) {
   def updated(newPoi: Poi) = {
@@ -60,14 +67,22 @@ class PoiHandler[M](modelRW: ModelRW[M, Pot[Pois]]) extends ActionHandler(modelR
   }
 }
 
-
+class CityHandler[M](modelRW: ModelRW[M, Pot[Seq[CityLabel]]]) extends ActionHandler(modelRW) {
+  override def handle = {
+    case GetCityCandidates(fragment) =>
+      effectOnly(Effect(AjaxClient[Api].getCitiesByName(fragment).call().map(UpdateCityCandidates)))
+    case UpdateCityCandidates(cities) =>
+      updated(Ready(cities))
+  }
+}
 
 // Application circuit
 object KidsTravelCircuit extends Circuit[RootModel] with ReactConnector[RootModel] {
   // initial application model
-  override protected def initialModel = RootModel(Empty)
+  override protected def initialModel = RootModel(Empty, Empty)
   // combine all handlers into one
   override protected val actionHandler = composeHandlers(
-    new PoiHandler(zoomRW(_.pois)((m, v) => m.copy(pois = v)))
+    new PoiHandler(zoomRW(_.pois)((m, v) => m.copy(pois = v))),
+    new CityHandler(zoomRW(_.cityCandidates)((m, v) => m.copy(cityCandidates = v)))
   )
 }
