@@ -29,11 +29,11 @@ object KidsTravelMain extends js.JSApp {
     import dsl._
 
     val poiWrapper = KidsTravelCircuit.connect(_.pois)
-    val cityWrapper = KidsTravelCircuit.connect(_.cityCandidates)
+    val dashboardWrapper = KidsTravelCircuit.connect(m => (m.dashboard))
 
     // wrap/connect components to the circuit
     (
-      staticRoute(root, DashboardLoc) ~> renderR(ctl => cityWrapper(proxy => Dashboard(ctl, proxy))) |
+      staticRoute(root, DashboardLoc) ~> renderR(ctl => dashboardWrapper(m => Dashboard(ctl, m))) |
       staticRoute("#todo", PoiLoc) ~> renderR(ctl => poiWrapper(PoiModule(_)))
       ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
@@ -46,7 +46,7 @@ object KidsTravelMain extends js.JSApp {
       // here we use plain Bootstrap class names as these are specific to the top level layout defined here
       <.nav(^.className := "navbar navbar-inverse navbar-fixed-top",
         <.div(^.className := "container",
-          <.div(^.className := "navbar-header", <.span(^.className := "navbar-brand", "SPA Tutorial")),
+          <.div(^.className := "navbar-header", <.span(^.className := "navbar-brand", "KidsTravel")),
           <.div(^.className := "collapse navbar-collapse",
             // connect menu to model, because it needs to update when the number of open todos changes
             poiCountWrapper(proxy => MainMenu(c, r.page, proxy))

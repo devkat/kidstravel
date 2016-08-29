@@ -21,15 +21,23 @@ case class UpdatePoi(poi: Poi) extends Action
 
 case class DeletePoi(poi: Poi) extends Action
 
+case object GetTopCities extends Action
+
+case class UpdateCities(cities: Seq[City]) extends Action
+
 case class GetCityCandidates(fragment: String) extends Action
 
 case class UpdateCityCandidates(candidates: Seq[CityLabel]) extends Action
 
+case class DashboardModel(
+  cityCandidates: Pot[Seq[CityLabel]],
+  topCities: Pot[Seq[City]]
+)
 
 // The base model of our application
 case class RootModel(
   pois: Pot[Pois],
-  cityCandidates: Pot[Seq[CityLabel]]
+  dashboard: DashboardModel
 )
 
 case class Pois(pois: Seq[Poi]) {
@@ -67,7 +75,7 @@ class PoiHandler[M](modelRW: ModelRW[M, Pot[Pois]]) extends ActionHandler(modelR
   }
 }
 
-class CityHandler[M](modelRW: ModelRW[M, Pot[Seq[CityLabel]]]) extends ActionHandler(modelRW) {
+class CitySearchHandler[M](modelRW: ModelRW[M, Pot[Seq[CityLabel]]]) extends ActionHandler(modelRW) {
   override def handle = {
     case GetCityCandidates(fragment) =>
       effectOnly(Effect(AjaxClient[Api].getCitiesByName(fragment).call().map(UpdateCityCandidates)))
@@ -76,13 +84,23 @@ class CityHandler[M](modelRW: ModelRW[M, Pot[Seq[CityLabel]]]) extends ActionHan
   }
 }
 
+case class TopCityHandler[M](modelRWx: ModelRW[M, Pot[Seq[City]]]) extends ActionHandler(modelRWx) {
+  override def handle = {
+    case GetTopCities =>
+      effectOnly(Effect(AjaxClient[Api].getTopCities().call().map(UpdateCities)))
+    case UpdateCities(cities) =>
+      updated(Ready(cities))
+  }
+}
+
 // Application circuit
 object KidsTravelCircuit extends Circuit[RootModel] with ReactConnector[RootModel] {
   // initial application model
-  override protected def initialModel = RootModel(Empty, Empty)
+  override protected def initialModel = RootModel(Empty, DashboardModel(Empty, Empty))
   // combine all handlers into one
   override protected val actionHandler = composeHandlers(
     new PoiHandler(zoomRW(_.pois)((m, v) => m.copy(pois = v))),
-    new CityHandler(zoomRW(_.cityCandidates)((m, v) => m.copy(cityCandidates = v)))
+    new CitySearchHandler(zoomRW(_.dashboard.cityCandidates)((m, v) => m.copy(dashboard = m.dashboard.copy(cityCandidates = v)))),
+    new TopCityHandler(zoomRW(_.dashboard.topCities)((m, v) => m.copy(dashboard = m.dashboard.copy(topCities = v))))
   )
 }

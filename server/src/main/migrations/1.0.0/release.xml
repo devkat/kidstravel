@@ -50,6 +50,7 @@
       <column name="name" type="varchar">
         <constraints nullable="false"/>
       </column>
+      <column name="population" type="bigint"/>
     </createTable>
 
     <addUniqueConstraint tableName="subdivision" columnNames="country_code, name" constraintName="unique_subdivision"/>

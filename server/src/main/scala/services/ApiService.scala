@@ -46,4 +46,9 @@ class ApiService @Inject()(
     })
   }
 
+  override def getTopCities(): Future[Seq[City]] = {
+    val query = cities.sortBy(_.population.desc).take(10)
+    db.run(query.result)
+  }
+
 }

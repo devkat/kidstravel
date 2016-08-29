@@ -84,7 +84,6 @@ object Settings {
     "me.chrons" %%% "diode" % versions.diode,
     "me.chrons" %%% "diode-react" % versions.diode,
     "org.scala-js" %%% "scalajs-dom" % versions.scalaDom,
-    "com.payalabs" %%% "scalajs-react-bridge" % versions.scalajsReactBridge,
     "com.lihaoyi" %%% "utest" % versions.uTest % Test
   ))
 
@@ -92,8 +91,6 @@ object Settings {
   val jsDependencies = Def.setting(Seq(
     "org.webjars.bower" % "react" % versions.react / "react-with-addons.js" minified "react-with-addons.min.js" commonJSName "React",
     "org.webjars.bower" % "react" % versions.react / "react-dom.js" minified "react-dom.min.js" dependsOn "react-with-addons.js" commonJSName "ReactDOM",
-    //"org.webjars.npm" % "react-bootstrap" % "0.30.3",
-    "org.webjars" % "react-bootstrap" % "0.28.1" / "react-bootstrap.js" minified "react-bootstrap.min.js",
     "org.webjars" % "jquery" % versions.jQuery / "jquery.js" minified "jquery.min.js",
     "org.webjars" % "bootstrap" % versions.bootstrap / "bootstrap.js" minified "bootstrap.min.js" dependsOn "jquery.js",
     "org.webjars" % "chartjs" % versions.chartjs / "Chart.js" minified "Chart.min.js",

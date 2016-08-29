@@ -9,6 +9,8 @@ trait Api {
 
   def getCitiesByName(fragment: String): Future[Seq[CityLabel]]
 
+  def getTopCities(): Future[Seq[City]]
+
   def getPois(): Seq[Poi]
 
   def updatePoi(poi: Poi): Seq[Poi]

@@ -6,14 +6,17 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.prefix_<^._
 import kidstravel.client.KidsTravelMain.{Loc, PoiLoc}
-import kidstravel.client.components.SearchBox
-import kidstravel.shared.geo.CityLabel
+import kidstravel.client.components.{CitySearchBox, CityTiles}
+import kidstravel.client.services.DashboardModel
+import kidstravel.shared.geo.{City, CityLabel}
 
 import scala.language.existentials
 
 object Dashboard {
 
-  case class Props(router: RouterCtl[Loc], cityProxy: ModelProxy[Pot[Seq[CityLabel]]])
+  case class Props(
+    router: RouterCtl[Loc],
+    proxy: ModelProxy[DashboardModel])
 
   case class State()
 
@@ -23,14 +26,20 @@ object Dashboard {
     .initialState_P(props => State())
     .renderPS { (_, props, state) =>
       <.div(
-        <.h2("Dashboard"),
-        // create a link to the To Do view
-        <.div(props.router.link(PoiLoc)("Check your todos!")),
-        SearchBox(props.cityProxy)
+        <.div(
+          <.h2("Search"),
+          // create a link to the To Do view
+          //<.div(props.router.link(PoiLoc)("Check your todos!")),
+          CitySearchBox(props.proxy.zoom(_.cityCandidates))
+        ),
+        <.div(
+          <.h2("Top 10 Cities"),
+          CityTiles(props.proxy.zoom(_.topCities))
+        )
       )
     }
     .build
 
-  def apply(router: RouterCtl[Loc], cityProxy: ModelProxy[Pot[Seq[CityLabel]]]) =
-    component(Props(router, cityProxy))
+  def apply(router: RouterCtl[Loc], proxy: ModelProxy[DashboardModel]) =
+    component(Props(router, proxy))
 }

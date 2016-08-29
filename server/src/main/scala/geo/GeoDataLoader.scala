@@ -86,7 +86,8 @@ class GeoDataLoader @Inject()(dbConfigProvider: DatabaseConfigProvider)(
     countries += Country(record.code2, record.name)
 
   private def importCity(geoName: GeoName): DBIOAction[Int, NoStream, Effect.All] =
-    cities.map(c => (c.name, c.countryCode)) += (geoName.name, geoName.countryCode)
+    cities.map(c => (c.name, c.countryCode, c.population)) +=
+      (geoName.name, geoName.countryCode, geoName.population)
 
   private def toDbioAction[S](queue: SinkQueue[DBIOAction[S, NoStream, Effect.All]]):
       DBIOAction[Queue[S], NoStream, Effect.All] =

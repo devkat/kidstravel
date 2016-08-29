@@ -31,7 +31,8 @@ object Schema {
     def country = foreignKey("fk_country", countryCode, countries)(_.code, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Restrict)
     def subdivisionId = column[Option[Long]]("subdivision_id")
     def subdivision = foreignKey("fk_subdivision", subdivisionId, subdivisions)(_.id.?, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Restrict)
-    def * = (id, name, countryCode, subdivisionId) <> (City.tupled, City.unapply)
+    def population = column[Option[Long]]("population")
+    def * = (id, name, countryCode, subdivisionId, population) <> (City.tupled, City.unapply)
   }
 
   val cities = TableQuery[Cities]
