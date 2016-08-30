@@ -6,12 +6,15 @@ import diode.react.ModelProxy
 import diode.react.ReactPot._
 import japgolly.scalajs.react.{BackendScope, ReactComponentB, _}
 import japgolly.scalajs.react.vdom.prefix_<^._
+import kidstravel.client.services.KidsTravelCircuit
 
 trait Tiles {
 
-  type T
+  type T <: AnyRef
 
   def getAction: Action
+
+  def tileComponent(proxy: ModelProxy[T]): ReactElement
 
   case class Props(proxy: ModelProxy[Pot[Seq[T]]])
 
@@ -19,15 +22,24 @@ trait Tiles {
 
     def load = $.props >>= (_.proxy.dispatch(getAction))
 
-    def render(props: Props) =
+    def render(props: Props) = {
+      val proxy = props.proxy
       <.div(
         ^.`class` := "row",
-        props.proxy().renderFailed(ex => "Error loading"),
-        props.proxy().renderPending(_ > 100, _ => <.p("Loading …")),
-        props.proxy().render(items =>
-          <.ol(items.map(item => <.li(item.toString)))
+        proxy().renderFailed(ex => "Error loading"),
+        proxy().renderPending(_ > 100, _ => <.p("Loading …")),
+        proxy().render(items =>
+          items.zipWithIndex.map { case (_, i) =>
+            proxy.wrap(_.get(i))(tileComponent(_))
+          }
+            /*
+          items.zipWithIndex.map { case (_, i) =>
+            childComponent(proxy.zoom(_.get(i)))
+          }
+          */
         )
       )
+    }
   }
 
   private val component = ReactComponentB[Props]("Tiles").
