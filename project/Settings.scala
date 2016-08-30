@@ -42,6 +42,7 @@ object Settings {
     val playSlick = "2.0.0"
     val akkaFileIo = "0.1.1-SNAPSHOT"
     val scalaTestPlusPlay = "1.5.0"
+    val uPickle = "0.4.1"
 
     val react = "15.1.0"
     val jQuery = "1.11.1"
@@ -84,7 +85,8 @@ object Settings {
     "me.chrons" %%% "diode" % versions.diode,
     "me.chrons" %%% "diode-react" % versions.diode,
     "org.scala-js" %%% "scalajs-dom" % versions.scalaDom,
-    "com.lihaoyi" %%% "utest" % versions.uTest % Test
+    "com.lihaoyi" %%% "utest" % versions.uTest % Test,
+    "com.lihaoyi" %%% "upickle" % versions.uPickle
   ))
 
   /** Dependencies for external JS libs that are bundled into a single .js file according to dependency order */

@@ -7,10 +7,12 @@ import diode.util._
 import diode.react.ReactConnector
 import kidstravel.shared.Api
 import boopickle.Default._
+import diode.ActionResult.ModelUpdate
 import kidstravel.shared.geo.{City, CityLabel}
 import kidstravel.shared.poi.Poi
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+import scala.util.Success
 
 // Actions
 case object RefreshPois extends Action
@@ -25,13 +27,17 @@ case object GetTopCities extends Action
 
 case class UpdateCities(cities: Seq[City]) extends Action
 
+case class GetCityImage(city: City) extends Action
+
+case class UpdateCityImage(city: City, image: FlickrImage) extends Action
+
 case class GetCityCandidates(fragment: String) extends Action
 
 case class UpdateCityCandidates(candidates: Seq[CityLabel]) extends Action
 
 case class DashboardModel(
   cityCandidates: Pot[Seq[CityLabel]],
-  topCities: Pot[Seq[City]]
+  topCities: Pot[Seq[(City, Pot[FlickrImage])]]
 )
 
 // The base model of our application
@@ -84,12 +90,41 @@ class CitySearchHandler[M](modelRW: ModelRW[M, Pot[Seq[CityLabel]]]) extends Act
   }
 }
 
-case class TopCityHandler[M](modelRWx: ModelRW[M, Pot[Seq[City]]]) extends ActionHandler(modelRWx) {
+class TopCitiesHandler[M](modelRW: ModelRW[M, Pot[Seq[(City, Pot[FlickrImage])]]])
+  extends ActionHandler(modelRW) {
+
+  def zoomToFlickrImage(city: City): ModelRW[M, Pot[FlickrImage]] =
+    modelRW.zoomRW(_.get.find(_._1 == city).get._2)((m, v) =>
+        m.map(_.map { case (c, img) => (c, if (c == city) v else img) })
+    )
+  /*
+    modelRW.value match {
+      case Ready(cities) =>
+        cities.find(_._1 == city) map { _ =>
+          modelRW.zoomRW(_.get.find(_._1 == city).get)((m, v) => (m._1, v)
+            // m.map(_.map { case (c, img) => (c, if (c == city) v else img) }
+          ))
+        }
+      case _ => None
+    }
+    */
+
   override def handle = {
+
     case GetTopCities =>
       effectOnly(Effect(AjaxClient[Api].getTopCities().call().map(UpdateCities)))
+
     case UpdateCities(cities) =>
-      updated(Ready(cities))
+      updated(Ready(cities.map((_, Empty))))
+
+    case GetCityImage(city) =>
+      effectOnly(Effect(FlickrService.search(s"${city.name} skyline").map(UpdateCityImage(city, _))))
+
+    case UpdateCityImage(city, image) =>
+      ModelUpdate(zoomToFlickrImage(city).updated(Ready(image)))
+    /*
+    updated(Ready(Seq((city, Ready(image)))))
+    */
   }
 }
 
@@ -100,7 +135,11 @@ object KidsTravelCircuit extends Circuit[RootModel] with ReactConnector[RootMode
   // combine all handlers into one
   override protected val actionHandler = composeHandlers(
     new PoiHandler(zoomRW(_.pois)((m, v) => m.copy(pois = v))),
-    new CitySearchHandler(zoomRW(_.dashboard.cityCandidates)((m, v) => m.copy(dashboard = m.dashboard.copy(cityCandidates = v)))),
-    new TopCityHandler(zoomRW(_.dashboard.topCities)((m, v) => m.copy(dashboard = m.dashboard.copy(topCities = v))))
+    new CitySearchHandler(
+      zoomRW(_.dashboard)((m, v) => m.copy(dashboard = v)).
+      zoomRW(_.cityCandidates)((m, v) => m.copy(cityCandidates = v))),
+    new TopCitiesHandler(
+      zoomRW(_.dashboard)((m, v) => m.copy(dashboard = v)).
+      zoomRW(_.topCities)((m, v) => m.copy(topCities = v)))
   )
 }

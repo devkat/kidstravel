@@ -29,7 +29,7 @@ object KidsTravelMain extends js.JSApp {
     import dsl._
 
     val poiWrapper = KidsTravelCircuit.connect(_.pois)
-    val dashboardWrapper = KidsTravelCircuit.connect(m => (m.dashboard))
+    val dashboardWrapper = KidsTravelCircuit.connect(_.dashboard)
 
     // wrap/connect components to the circuit
     (

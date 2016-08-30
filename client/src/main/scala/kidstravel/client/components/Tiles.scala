@@ -1,7 +1,7 @@
 package kidstravel.client.components
 
 import diode.Action
-import diode.data.Pot
+import diode.data.{Empty, Pot}
 import diode.react.ModelProxy
 import diode.react.ReactPot._
 import japgolly.scalajs.react.{BackendScope, ReactComponentB, _}
@@ -20,7 +20,10 @@ trait Tiles {
 
   class Backend($: BackendScope[Props, Unit]) {
 
-    def load = $.props >>= (_.proxy.dispatch(getAction))
+    def load = $.props >>= (p => p.proxy.value match {
+      case Empty => p.proxy.dispatch(getAction)
+      case _ => Callback.empty
+    })
 
     def render(props: Props) = {
       val proxy = props.proxy
@@ -30,13 +33,10 @@ trait Tiles {
         proxy().renderPending(_ > 100, _ => <.p("Loading …")),
         proxy().render(items =>
           items.zipWithIndex.map { case (_, i) =>
-            proxy.wrap(_.get(i))(tileComponent(_))
+            proxy.connect(_.get(i)).apply(tileComponent(_))
+            //proxy.wrap(_.get(i))(tileComponent(_))
+            //tileComponent(proxy.zoom(_.get(i)))
           }
-            /*
-          items.zipWithIndex.map { case (_, i) =>
-            childComponent(proxy.zoom(_.get(i)))
-          }
-          */
         )
       )
     }
