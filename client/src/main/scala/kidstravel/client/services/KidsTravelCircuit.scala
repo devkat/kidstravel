@@ -3,7 +3,6 @@ package kidstravel.client.services
 import autowire._
 import diode._
 import diode.data._
-import diode.util._
 import diode.react.ReactConnector
 import kidstravel.shared.Api
 import boopickle.Default._
@@ -12,7 +11,6 @@ import kidstravel.shared.geo.{City, CityLabel}
 import kidstravel.shared.poi.Poi
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
-import scala.util.Success
 
 // Actions
 case object RefreshPois extends Action
@@ -98,17 +96,6 @@ class TopCitiesHandler[M](modelRW: ModelRW[M, Pot[Seq[(City, Pot[FlickrImage])]]
     modelRW.zoomRW(_.get.find(_._1 == city).get._2)((m, v) =>
         m.map(_.map { case (c, img) => (c, if (c == city) v else img) })
     )
-  /*
-    modelRW.value match {
-      case Ready(cities) =>
-        cities.find(_._1 == city) map { _ =>
-          modelRW.zoomRW(_.get.find(_._1 == city).get)((m, v) => (m._1, v)
-            // m.map(_.map { case (c, img) => (c, if (c == city) v else img) }
-          ))
-        }
-      case _ => None
-    }
-    */
 
   override def handle = {
 
@@ -126,13 +113,13 @@ class TopCitiesHandler[M](modelRW: ModelRW[M, Pot[Seq[(City, Pot[FlickrImage])]]
           effects.reduceLeft(_ + _)
         }
       )
-/*
+
     case GetCityImage(city) =>
       ModelUpdateEffect(
         zoomToFlickrImage(city).updated(Pending()),
         Effect(FlickrService.search(s"${city.name} skyline").map(UpdateCityImage(city, _)))
       )
-*/
+
     case UpdateCityImage(city, image) =>
       ModelUpdate(zoomToFlickrImage(city).updated(Ready(image)))
 

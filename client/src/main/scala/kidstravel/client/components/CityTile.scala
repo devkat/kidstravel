@@ -1,15 +1,13 @@
 package kidstravel.client.components
 
-import diode.data.{Empty, Pot}
+import diode.data.Pot
 import diode.react.ModelProxy
 import diode.react.ReactPot._
-import japgolly.scalajs.react.extra.Reusability
 import japgolly.scalajs.react.extra.router.RouterCtl
-import japgolly.scalajs.react.{BackendScope, Callback, ReactComponentB, ShouldComponentUpdate}
 import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.{BackendScope, ReactComponentB}
 import kidstravel.client.KidsTravelMain.{CityLoc, Loc}
-import kidstravel.client.logger._
-import kidstravel.client.services.{FlickrImage, GetCityImage}
+import kidstravel.client.services.FlickrImage
 import kidstravel.shared.geo.City
 
 object CityTile {
@@ -17,12 +15,6 @@ object CityTile {
   case class Props(router: RouterCtl[Loc], proxy: ModelProxy[(City, Pot[FlickrImage])])
 
   class Backend($: BackendScope[Props, Unit]) {
-
-    def load(props: Props) =
-      Callback.when(props.proxy()._2.isEmpty) {
-        log.info(s"Loading ${props.proxy()._1.name}")
-        props.proxy.dispatch(GetCityImage(props.proxy()._1))
-      }
 
     def render(props: Props) = {
       val city = props.proxy()._1
@@ -50,19 +42,9 @@ object CityTile {
       )
     }
   }
-/*
-  implicit val cityReuse = Reusability.caseClass[City]
-  implicit val flickrImageReuse = Reusability.caseClass[FlickrImage]
-*/
+
   private def component = ReactComponentB[Props]("CityTile").
     renderBackend[Backend].
-    componentDidMount(p => p.backend.load(p.props)).
-  /*
-    configure(Reusability.shouldComponentUpdate).
-      */
-    shouldComponentUpdate(p => {
-      log.info(s"Should update ${p.currentProps.proxy()._1.name}")
-      false}).
     build
 
   def apply(router: RouterCtl[Loc], proxy: ModelProxy[(City, Pot[FlickrImage])]) =

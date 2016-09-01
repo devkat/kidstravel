@@ -51,7 +51,6 @@ trait Tiles {
   private val component = ReactComponentB[Props]("Tiles").
     renderBackend[Backend].
     componentDidMount(_.backend.load).
-    componentDidUpdate(_.$.propsChildrenCB.map(children => log.info("Updated; children: " + children))).
     build
 
   def apply(router: RouterCtl[Loc], proxy: ModelProxy[Pot[Seq[T]]]) = component(Props(router, proxy))
