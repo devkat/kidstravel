@@ -34,11 +34,11 @@ object Dashboard {
         ),
         <.div(
           <.h2("Top 10 Cities"),
-          props.proxy.connect(_.topCities).apply(CityTiles(_))
+          props.proxy.connect(_.topCities).apply(CityTiles(props.router, _))
         )
       )
-    }
-    .build
+    }.
+    build
 
   def apply(router: RouterCtl[Loc], proxy: ModelProxy[DashboardModel]) =
     component(Props(router, proxy))

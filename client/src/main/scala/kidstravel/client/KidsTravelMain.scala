@@ -4,9 +4,10 @@ import japgolly.scalajs.react.ReactDOM
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import kidstravel.client.components.GlobalStyles
-import kidstravel.client.modules.{Dashboard, MainMenu, PoiModule}
+import kidstravel.client.modules.{CityModule, Dashboard, MainMenu, PoiModule}
 import kidstravel.client.services.KidsTravelCircuit
 import kidstravel.client.logger._
+import kidstravel.shared.geo.City
 import org.scalajs.dom
 
 import scala.scalajs.js
@@ -24,18 +25,22 @@ object KidsTravelMain extends js.JSApp {
 
   case object PoiLoc extends Loc
 
+  case class CityLoc(cityId: Long) extends Loc
+
   // configure the router
   val routerConfig = RouterConfigDsl[Loc].buildConfig { dsl =>
     import dsl._
 
     val poiWrapper = KidsTravelCircuit.connect(_.pois)
     val dashboardWrapper = KidsTravelCircuit.connect(_.dashboard)
+    val cityWrapper = KidsTravelCircuit.connect(_.city)
 
     // wrap/connect components to the circuit
     (
       staticRoute(root, DashboardLoc) ~> renderR(ctl => dashboardWrapper(m => Dashboard(ctl, m))) |
-      staticRoute("#todo", PoiLoc) ~> renderR(ctl => poiWrapper(PoiModule(_)))
-      ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
+      staticRoute("#todo", PoiLoc) ~> renderR(ctl => poiWrapper(PoiModule(_))) |
+      dynamicRouteCT("city" / long.caseClass[CityLoc]) ~> dynRenderR { case (cityLoc, ctl) => cityWrapper(CityModule(cityLoc.cityId, _)) }
+    ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
 
   val poiCountWrapper = KidsTravelCircuit.connect(_.pois.map(_.pois.size).toOption)

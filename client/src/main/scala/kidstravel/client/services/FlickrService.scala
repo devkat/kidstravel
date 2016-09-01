@@ -23,6 +23,8 @@ object FlickrService {
 
   import kidstravel.client.util.UrlBuilder._
 
+  //def search(keyword: String): Future[FlickrImage] = Future {  FlickrImage("1", 1, "1", "1") }
+
   def search(keyword: String): Future[FlickrImage] = {
     val url = endpoint &
       ("method" -> "flickr.photos.search") &

@@ -7,7 +7,7 @@ import diode.util._
 import diode.react.ReactConnector
 import kidstravel.shared.Api
 import boopickle.Default._
-import diode.ActionResult.ModelUpdate
+import diode.ActionResult.{ModelUpdate, ModelUpdateEffect}
 import kidstravel.shared.geo.{City, CityLabel}
 import kidstravel.shared.poi.Poi
 
@@ -43,7 +43,8 @@ case class DashboardModel(
 // The base model of our application
 case class RootModel(
   pois: Pot[Pois],
-  dashboard: DashboardModel
+  dashboard: DashboardModel,
+  city: Pot[City]
 )
 
 case class Pois(pois: Seq[Poi]) {
@@ -112,26 +113,36 @@ class TopCitiesHandler[M](modelRW: ModelRW[M, Pot[Seq[(City, Pot[FlickrImage])]]
   override def handle = {
 
     case GetTopCities =>
-      effectOnly(Effect(AjaxClient[Api].getTopCities().call().map(UpdateCities)))
+      ModelUpdateEffect(
+        modelRW.updated(Pending()),
+        Effect(AjaxClient[Api].getTopCities().call().map(UpdateCities))
+      )
 
     case UpdateCities(cities) =>
-      updated(Ready(cities.map((_, Empty))))
-
+      ModelUpdateEffect(
+        modelRW.updated(Ready(cities.map((_, Empty)))),
+        {
+          val effects: Seq[Effect] = cities.map(city => Effect(FlickrService.search(s"${city.name} skyline").map(UpdateCityImage(city, _))))
+          effects.reduceLeft(_ + _)
+        }
+      )
+/*
     case GetCityImage(city) =>
-      effectOnly(Effect(FlickrService.search(s"${city.name} skyline").map(UpdateCityImage(city, _))))
-
+      ModelUpdateEffect(
+        zoomToFlickrImage(city).updated(Pending()),
+        Effect(FlickrService.search(s"${city.name} skyline").map(UpdateCityImage(city, _)))
+      )
+*/
     case UpdateCityImage(city, image) =>
       ModelUpdate(zoomToFlickrImage(city).updated(Ready(image)))
-    /*
-    updated(Ready(Seq((city, Ready(image)))))
-    */
+
   }
 }
 
 // Application circuit
 object KidsTravelCircuit extends Circuit[RootModel] with ReactConnector[RootModel] {
   // initial application model
-  override protected def initialModel = RootModel(Empty, DashboardModel(Empty, Empty))
+  override protected def initialModel = RootModel(Empty, DashboardModel(Empty, Empty), Empty)
   // combine all handlers into one
   override protected val actionHandler = composeHandlers(
     new PoiHandler(zoomRW(_.pois)((m, v) => m.copy(pois = v))),
