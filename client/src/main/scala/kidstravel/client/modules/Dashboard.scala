@@ -34,7 +34,8 @@ object Dashboard {
         ),
         <.div(
           <.h2("Top 10 Cities"),
-          props.proxy.connect(_.topCities).apply(CityTiles(props.router, _))
+          //props.proxy.connect(_.topCities).apply(CityTiles(props.router, _))
+          CityTiles(props.router, props.proxy.zoom(_.topCities))
         )
       )
     }.

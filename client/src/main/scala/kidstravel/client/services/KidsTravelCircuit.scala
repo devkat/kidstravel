@@ -118,6 +118,7 @@ class TopCitiesHandler[M](modelRW: ModelRW[M, Pot[Seq[(City, Pot[FlickrImage])]]
         Effect(AjaxClient[Api].getTopCities().call().map(UpdateCities))
       )
 
+      /*
     case UpdateCities(cities) =>
       ModelUpdateEffect(
         modelRW.updated(Ready(cities.map((_, Empty)))),
@@ -126,13 +127,17 @@ class TopCitiesHandler[M](modelRW: ModelRW[M, Pot[Seq[(City, Pot[FlickrImage])]]
           effects.reduceLeft(_ + _)
         }
       )
-/*
+      */
+
+    case UpdateCities(cities) =>
+        updated(Ready(cities.map((_, Empty))))
+
     case GetCityImage(city) =>
       ModelUpdateEffect(
         zoomToFlickrImage(city).updated(Pending()),
         Effect(FlickrService.search(s"${city.name} skyline").map(UpdateCityImage(city, _)))
       )
-*/
+
     case UpdateCityImage(city, image) =>
       ModelUpdate(zoomToFlickrImage(city).updated(Ready(image)))
 

@@ -14,7 +14,7 @@ import kidstravel.shared.geo.City
 
 object CityTile {
 
-  case class Props(router: RouterCtl[Loc], proxy: ModelProxy[(City, Pot[FlickrImage])])
+  type Props = TileProps[(City, Pot[FlickrImage])]
 
   class Backend($: BackendScope[Props, Unit]) {
 
@@ -57,15 +57,11 @@ object CityTile {
   private def component = ReactComponentB[Props]("CityTile").
     renderBackend[Backend].
     componentDidMount(p => p.backend.load(p.props)).
-  /*
-    configure(Reusability.shouldComponentUpdate).
-      */
     shouldComponentUpdate(p => {
       log.info(s"Should update ${p.currentProps.proxy()._1.name}")
       false}).
     build
 
-  def apply(router: RouterCtl[Loc], proxy: ModelProxy[(City, Pot[FlickrImage])]) =
-    component(Props(router, proxy))
+  def apply = component
 
 }

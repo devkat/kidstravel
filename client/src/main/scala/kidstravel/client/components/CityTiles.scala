@@ -14,7 +14,6 @@ object CityTiles extends Tiles {
 
   override def getAction = GetTopCities
 
-  override def tileComponent(router: RouterCtl[Loc], proxy: ModelProxy[(City, Pot[FlickrImage])]): ReactElement =
-    CityTile(router, proxy)
+  override def tileComponent = CityTile.apply
 
 }
