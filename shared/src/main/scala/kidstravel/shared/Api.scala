@@ -19,4 +19,6 @@ trait Api {
 
   def getCountries(): Seq[Country]
 
+  def getCity(cityId: Long): Future[City]
+
 }

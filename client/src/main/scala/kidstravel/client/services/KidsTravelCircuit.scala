@@ -33,6 +33,10 @@ case class GetCityCandidates(fragment: String) extends Action
 
 case class UpdateCityCandidates(candidates: Seq[CityLabel]) extends Action
 
+case class GetCity(cityId: Long) extends Action
+
+case class UpdateCity(city: City) extends Action
+
 case class DashboardModel(
   cityCandidates: Pot[Seq[CityLabel]],
   topCities: Pot[Seq[(City, Pot[FlickrImage])]]
@@ -126,6 +130,22 @@ class TopCitiesHandler[M](modelRW: ModelRW[M, Pot[Seq[(City, Pot[FlickrImage])]]
   }
 }
 
+class CityHandler[M](modelRW: ModelRW[M, Pot[City]])
+  extends ActionHandler(modelRW) {
+  override def handle = {
+
+    case GetCity(cityId) =>
+      ModelUpdateEffect(
+        modelRW.updated(Pending()),
+        Effect(AjaxClient[Api].getCity(cityId).call().map(UpdateCity))
+      )
+
+    case UpdateCity(city) =>
+      updated(Ready(city))
+
+  }
+}
+
 // Application circuit
 object KidsTravelCircuit extends Circuit[RootModel] with ReactConnector[RootModel] {
   // initial application model
@@ -138,6 +158,7 @@ object KidsTravelCircuit extends Circuit[RootModel] with ReactConnector[RootMode
       zoomRW(_.cityCandidates)((m, v) => m.copy(cityCandidates = v))),
     new TopCitiesHandler(
       zoomRW(_.dashboard)((m, v) => m.copy(dashboard = v)).
-      zoomRW(_.topCities)((m, v) => m.copy(topCities = v)))
+      zoomRW(_.topCities)((m, v) => m.copy(topCities = v))),
+    new CityHandler(zoomRW(_.city)((m, v) => m.copy(city = v)))
   )
 }

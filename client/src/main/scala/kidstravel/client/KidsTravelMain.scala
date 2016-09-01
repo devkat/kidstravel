@@ -39,7 +39,7 @@ object KidsTravelMain extends js.JSApp {
     (
       staticRoute(root, DashboardLoc) ~> renderR(ctl => dashboardWrapper(m => Dashboard(ctl, m))) |
       staticRoute("#todo", PoiLoc) ~> renderR(ctl => poiWrapper(PoiModule(_))) |
-      dynamicRouteCT("city" / long.caseClass[CityLoc]) ~> dynRenderR { case (cityLoc, ctl) => cityWrapper(CityModule(cityLoc.cityId, _)) }
+      dynamicRouteCT("#city" / long.caseClass[CityLoc]) ~> dynRenderR { case (cityLoc, ctl) => cityWrapper(CityModule(cityLoc.cityId, _)) }
     ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
 

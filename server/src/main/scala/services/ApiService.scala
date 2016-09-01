@@ -51,4 +51,7 @@ class ApiService @Inject()(
     db.run(query.result)
   }
 
+  override def getCity(cityId: Long): Future[City] =
+    db.run(cities.filter(_.id === cityId).result.head)
+
 }
