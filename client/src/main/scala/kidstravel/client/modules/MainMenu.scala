@@ -30,8 +30,7 @@ object MainMenu {
   }
 
   private val menuItems = Seq(
-    MenuItem(1, _ => "Dashboard", Icon.dashboard, DashboardLoc),
-    MenuItem(2, buildTodoMenu, Icon.check, PoiLoc)
+    MenuItem(1, _ => "Dashboard", Icon.dashboard, DashboardLoc)
   )
 
   private class Backend($: BackendScope[Props, Unit]) {

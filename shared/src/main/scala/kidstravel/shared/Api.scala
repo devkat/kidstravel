@@ -11,7 +11,7 @@ trait Api {
 
   def getTopCities(): Future[Seq[City]]
 
-  def getPois(): Seq[Poi]
+  def getPoi(id: Long): Future[Poi]
 
   def updatePoi(poi: Poi): Seq[Poi]
 

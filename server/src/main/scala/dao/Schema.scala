@@ -1,6 +1,7 @@
 package dao
 
 import kidstravel.shared.geo.{City, Country, Subdivision}
+import kidstravel.shared.poi.Poi
 import slick.driver.H2Driver.api._
 import slick.lifted.Tag
 
@@ -36,5 +37,14 @@ object Schema {
   }
 
   val cities = TableQuery[Cities]
+
+  class Pois(tag: Tag) extends Table[Poi](tag, "poi") {
+    def id = column[Long]("id", O.PrimaryKey)
+    def name = column[String]("name")
+    def * = (id, name) <> (Poi.tupled, Poi.unapply)
+  }
+
+  val pois = TableQuery[Pois]
+
 
 }

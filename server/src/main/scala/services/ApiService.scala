@@ -29,7 +29,8 @@ class ApiService @Inject()(
     Nil
   }
 
-  override def getPois(): Seq[Poi] = Nil
+  override def getPoi(id: Long): Future[Poi] =
+    db.run(pois.filter(_.id === id).result.head)
 
   override def updatePoi(poi: Poi): Seq[Poi] = Nil
 

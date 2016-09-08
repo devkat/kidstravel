@@ -4,7 +4,7 @@ import japgolly.scalajs.react.ReactDOM
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import kidstravel.client.components.GlobalStyles
-import kidstravel.client.modules.{CityModule, Dashboard, MainMenu, PoiModule}
+import kidstravel.client.modules.{CityModule, Dashboard, MainMenu, PoiEditor}
 import kidstravel.client.services.KidsTravelCircuit
 import kidstravel.client.logger._
 import kidstravel.shared.geo.City
@@ -23,27 +23,38 @@ object KidsTravelMain extends js.JSApp {
 
   case object DashboardLoc extends Loc
 
-  case object PoiLoc extends Loc
+  case object NewPoiLoc extends Loc
 
-  case class CityLoc(cityId: Long) extends Loc
+  case class PoiLoc(id: Long) extends Loc
+
+  case class CityLoc(id: Long) extends Loc
 
   // configure the router
   val routerConfig = RouterConfigDsl[Loc].buildConfig { dsl =>
     import dsl._
 
-    val poiWrapper = KidsTravelCircuit.connect(_.pois)
     val dashboardWrapper = KidsTravelCircuit.connect(_.dashboard)
     val cityWrapper = KidsTravelCircuit.connect(_.city)
+    val poisWrapper = KidsTravelCircuit.connect(_.pois)
 
     // wrap/connect components to the circuit
     (
-      staticRoute(root, DashboardLoc) ~> renderR(ctl => dashboardWrapper(m => Dashboard(ctl, m))) |
-      staticRoute("#todo", PoiLoc) ~> renderR(ctl => poiWrapper(PoiModule(_))) |
-      dynamicRouteCT("#city" / long.caseClass[CityLoc]) ~> dynRenderR { case (cityLoc, ctl) => cityWrapper(CityModule(cityLoc.cityId, _)) }
+      staticRoute(root, DashboardLoc) ~>
+        renderR { ctl => dashboardWrapper(m => Dashboard(ctl, m)) } |
+
+      dynamicRouteCT("#city" / long.caseClass[CityLoc]) ~>
+        dynRenderR { case (cityLoc, ctl) => cityWrapper(CityModule(cityLoc.id, ctl, _)) } |
+
+      staticRoute("#poi" / "new", NewPoiLoc) ~>
+        renderR { ctl => poisWrapper(m => PoiEditor(None, ctl, m)) } |
+
+      dynamicRouteCT("#poi" / long.caseClass[PoiLoc] / "edit") ~>
+        dynRenderR { case (poiLoc, ctl) => poisWrapper(m => PoiEditor(Some(poiLoc.id), ctl, m)) }
+
     ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
 
-  val poiCountWrapper = KidsTravelCircuit.connect(_.pois.map(_.pois.size).toOption)
+  //val poiCountWrapper = KidsTravelCircuit.connect(_.pois.map(_.pois.size).toOption)
 
   // base layout for all pages
   def layout(c: RouterCtl[Loc], r: Resolution[Loc]) = {
@@ -52,9 +63,9 @@ object KidsTravelMain extends js.JSApp {
       <.nav(^.className := "navbar navbar-inverse navbar-fixed-top",
         <.div(^.className := "container",
           <.div(^.className := "navbar-header", <.span(^.className := "navbar-brand", "KidsTravel")),
-          <.div(^.className := "collapse navbar-collapse",
+          <.div(^.className := "collapse navbar-collapse"
             // connect menu to model, because it needs to update when the number of open todos changes
-            poiCountWrapper(proxy => MainMenu(c, r.page, proxy))
+            // poiCountWrapper(proxy => MainMenu(c, r.page, proxy))
           )
         )
       ),
